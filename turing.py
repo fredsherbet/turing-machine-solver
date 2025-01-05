@@ -12,30 +12,76 @@ def solve_for_cards(cards):
     # We'll use the first fact to get a list of candidates, then filter it down by eliminating
     # candidates that have redundant cards.
 
-    # Do we know all the rules needed?
-    all_good = True
-    for c in cards:
-        try:
-            card_rules[c]
-        except KeyError:
-            all_good = False
-            print(f"I do not know the rules for card {c}")
-    if not all_good:
-        return
-    
-    #print("Rule sets that provide a single solution:")
     options = Options(cards)
-    #options.short_print_rules()
 
-    # Can we eliminate some, due to some rules being redundant?
-    options.eliminate_redundant_cards()
-    print(f"\nIgnoring rules that contain redundant rules (got {len(options)}):")
+    print(f"\nPossible solutions (got {len(options)}):")
     options.short_print_rules()
 
     if len(options) > 1:
         # We don't have a single solution. Can we help the player decide what to do?
         print("\nThat means:\n")
         options.print_card_information()
+
+
+class Options:
+    def __init__(self, cards):
+        self.cards = cards
+        self.options = [o for o in self._find_rules_that_produce_single_result() if not o.has_redundant_card()]
+
+    def __len__(self):
+        return len(self.options)
+
+    def short_print_rules(self):
+        print("\n".join(f"{o.solution}: {o.rules}" for o in self.options))
+
+    def print_card_information(self):
+        for card in self.cards:
+            for rule in card_rules[card]:
+                if all(rule in o.rules for o in self.options):
+                    print(f"* Card {card} is definitely `{rule}`")
+                    break
+            else:
+                print(f"* Card {card} could be {"".join(
+                    f"\n    * `{rule}` ({", ".join(str(s) for s in self._possible_solutions_for_rule(rule))})"
+                    for rule in card_rules[card] if any(rule in o.rules for o in self.options))
+                }")
+
+    def _find_rules_that_produce_single_result(self):
+        for rule_set in product(*(card_rules[c] for c in self.cards)):
+            o = Option(rule_set)
+            if o.has_unique_solution():
+                yield o
+
+    def _possible_solutions_for_rule(self, rule):
+        return (o.solution for o in self.options if rule in o.rules)
+
+
+class Option:
+    def __init__(self, rules):
+        self.rules = rules
+        self.solution = self.find_unique_solution()
+
+    def has_unique_solution(self):
+        return self.solution is not None
+
+    def has_redundant_card(self):
+        for r in combinations(self.rules, len(self.rules)-1):
+            if Option(r).find_unique_solution():
+                # Found a unique solution, despite ignoring a rule
+                #print(f"{g}: {rule_set} IS BAD because subset {r} gives a unique solution")
+                return True
+        return False
+
+    def find_unique_solution(self):
+        count = 0
+        for g in Guess.all_possible_guesses():
+            if all(r.test(g) for r in self.rules):
+                good_guess = g
+                count += 1
+                if count > 1:
+                    return
+        if count == 1:
+            return good_guess
 
 
 class Guess:
@@ -60,65 +106,6 @@ class Guess:
             yield Guess(b, y, p)
 
 
-class Option:
-    def __init__(self, solution, rules):
-        self.solution = solution
-        self.rules = rules
-
-    def has_redundant_card(self):
-        for r in combinations(self.rules, len(self.rules)-1):
-            if find_unique_solution(r):
-                # Found a unique solution, despite ignoring a rule
-                #print(f"{g}: {rule_set} IS BAD because subset {r} gives a unique solution")
-                return True
-        return False
-
-class Options:
-    def __init__(self, cards):
-        self.cards = cards
-        self.options = list(self._find_rules_that_produce_single_result())
-        
-    def __len__(self):
-        return len(self.options)
-
-    def eliminate_redundant_cards(self):
-        self.options = [o for o in self.options if not o.has_redundant_card()]
-
-    def short_print_rules(self):
-        print("\n".join(f"{o.solution}: {o.rules}" for o in self.options))
-
-    def print_card_information(self):
-        for card in self.cards:
-            for rule in card_rules[card]:
-                if all(rule in o.rules for o in self.options):
-                    print(f"* Card {card} is definitely `{rule}`")
-                    break
-            else:
-                print(f"* Card {card} could be {"".join(
-                    f"\n    * `{rule}` ({", ".join(str(s) for s in self._possible_solutions_for_rule(rule))})" 
-                    for rule in card_rules[card] if any(rule in o.rules for o in self.options))
-                }")
-
-    def _find_rules_that_produce_single_result(self):
-        for rule_set in product(*(card_rules[c] for c in self.cards)):
-            g = find_unique_solution(rule_set)
-            if g:
-                yield Option(g, rule_set)
-    
-    def _possible_solutions_for_rule(self, rule):
-        return (o.solution for o in self.options if rule in o.rules)
-
-def find_unique_solution(rule_set):
-    count = 0
-    for g in Guess.all_possible_guesses():
-        if all(r.test(g) for r in rule_set):
-            good_guess = g
-            count += 1
-            if count > 1:
-                break
-    if count == 1:
-        return good_guess
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="A Turing Machine game analyser")
     parser.add_argument("-c", "--cards", help="A comma-separated list of the cards in the game", required=True)
@@ -128,4 +115,11 @@ if __name__ == '__main__':
     except ValueError:
         print("Cards must be numeric values, separated by commas")
         sys.exit(1)
+
+    # Do we know all the rules needed?
+    not_got = [c for c in cards if c not in card_rules]
+    if not_got:
+        print(f"I don't have cards {not_got}")
+        sys.exit(1)
+
     solve_for_cards(cards)
