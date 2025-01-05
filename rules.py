@@ -296,7 +296,7 @@ card_rules = {
         Rule("count_digits(g, '== 4') == 1", "1 of 4"),
         Rule("count_digits(g, '== 4') == 2", "2 of 4"),
     ],
-    46: [ # How many 1s? Or how many 4s?
+    47: [ # How many 1s? Or how many 4s?
         Rule("count_digits(g, '== 1') == 0", "0 of 1"),
         Rule("count_digits(g, '== 1') == 1", "1 of 1"),
         Rule("count_digits(g, '== 1') == 2", "2 of 1"),
