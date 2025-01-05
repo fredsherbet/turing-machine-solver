@@ -25,7 +25,7 @@ class Guess:
         yield self.p
 
 def all_possible_guesses():
-    for b,y,p in product(range(6), range(6), range(6)):
+    for b,y,p in product(range(1, 6), range(1, 6), range(1, 6)):
         yield Guess(b, y, p)
 
 class Rule:
@@ -77,11 +77,17 @@ card_rules = {
 
 cards = [3, 7, 9, 11, 15, 16]
 
+# Find all rule sets that have a single solution
 good_rules = []
-
 for rule_set in product(*(card_rules[c] for c in cards)):
-    would_be_valid = [g for g in all_possible_guesses() if all(r.test(g) for r in rule_set)]
-    if len(would_be_valid) == 1:
-        good_rules.append((rule_set, would_be_valid[0]))
-            
+    count = 0
+    for g in all_possible_guesses():
+        if all(r.test(g) for r in rule_set):
+            good_guess = g
+            count += 1
+            if count > 1:
+                break
+    if count == 1:
+        good_rules.append((rule_set, good_guess))
+print("Rule sets that provide a single solution:")
 print("\n".join(str(r) for r in good_rules))
