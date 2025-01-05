@@ -107,6 +107,9 @@ class Guess:
         yield self.y
         yield self.p
 
+    def count(self, val):
+        return sum(1 for d in self if d == val)
+
     def all_possible_guesses():
         for b,y,p in product(range(1, 6), range(1, 6), range(1, 6)):
             yield Guess(b, y, p)
