@@ -22,11 +22,15 @@ def solve_for_cards(cards):
         print("\nThat means:\n")
         options.print_card_information()
 
+    return options
+
 
 class Options:
     def __init__(self, cards):
         self.cards = cards
-        self.options = [o for o in self._find_rules_that_produce_single_result() if not o.has_redundant_card()]
+        self.options = [
+            o for o in self._find_rules_that_produce_single_result()
+            if not o.has_redundant_card()]
 
     def __len__(self):
         return len(self.options)
@@ -36,15 +40,14 @@ class Options:
 
     def print_card_information(self):
         for card in self.cards:
-            for rule in card_rules[card]:
-                if all(rule in o.rules for o in self.options):
-                    print(f"* Card {card} is definitely `{rule}`")
-                    break
+            rules = self._rules_for_card(card)
+            if len(rules) == 1:
+                print(f"* Card {card} is definitely `{rules[0]}`")
             else:
-                print(f"* Card {card} could be {"".join(
-                    f"\n    * `{rule}` ({", ".join(str(s) for s in self._possible_solutions_for_rule(rule))})"
-                    for rule in card_rules[card] if any(rule in o.rules for o in self.options))
-                }")
+                print(f"* Card {card} could be")
+                for r in rules:
+                    solutions_s = ", ".join(str(s) for s in self._possible_solutions_for_rule(r))
+                    print(f"    * `{r}` ({solutions_s})")
 
     def _find_rules_that_produce_single_result(self):
         for rule_set in product(*(card_rules[c] for c in self.cards)):
@@ -54,6 +57,9 @@ class Options:
 
     def _possible_solutions_for_rule(self, rule):
         return (o.solution for o in self.options if rule in o.rules)
+
+    def _rules_for_card(self, card):
+        return [r for r in card_rules[card] if any(r in o.rules for o in self.options)]
 
 
 class Option:
