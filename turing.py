@@ -86,9 +86,9 @@ def solve_for_cards(cards):
     if not all_good:
         return
     
-    print("Rule sets that provide a single solution:")
+    #print("Rule sets that provide a single solution:")
     good_rules = list(find_rules_that_produce_single_result(cards))
-    short_print_rules(good_rules)
+    #short_print_rules(good_rules)
 
     # Can we eliminate some, due to some rules being redundant?
     good_rules = list(eliminate_sets_with_redundant_cards(good_rules))
