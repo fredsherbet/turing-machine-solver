@@ -42,12 +42,12 @@ class Options:
         for card in self.cards:
             rules = self._rules_for_card(card)
             if len(rules) == 1:
-                print(f"* Card {card} is definitely `{rules[0]}`")
+                print(f"* Card {card} is definitely {rules[0]}")
             else:
                 print(f"* Card {card} could be")
                 for r in rules:
                     solutions_s = ", ".join(str(s) for s in self._possible_solutions_for_rule(r))
-                    print(f"    * `{r}` ({solutions_s})")
+                    print(f"    * {r} ({solutions_s})")
 
     def _find_rules_that_produce_single_result(self):
         for rule_set in product(*(card_rules[c] for c in self.cards)):
