@@ -52,9 +52,11 @@ def neighbours(g):
 
 def count_asc(g):
     asc = sum(1 for a,b in neighbours(g) if b-a == 1)
-    if asc == 0:
-        return 0
-    return asc + 1
+    return 0 if asc == 0 else asc + 1
+
+def count_desc(g):
+    desc = sum(1 for a,b in neighbours(g) if a-b == 1)
+    return 0 if desc == 0 else desc + 1
 
 card_rules = {
     3: [ # Yellow vs 3
@@ -107,10 +109,20 @@ card_rules = {
         Rule("g.b < g.y and g.y < g.p"),
         Rule("not((g.b > g.y and g.y > g.p) or (g.b < g.y and g.y < g.p))"),
     ],
+    23: [ # Sum vs 6
+        Rule("sum(g) <  6"),
+        Rule("sum(g) == 6"),
+        Rule("sum(g) >  6"),
+    ],
     24: [ # Asc sequence length
         Rule("count_asc(g) == 3"),
         Rule("count_asc(g) == 2"),
         Rule("count_asc(g) == 0"),
+    ],
+    25: [ # How many asc or desc?
+        Rule("count_asc(g) == 0 and count_desc(g) == 0"),
+        Rule("count_asc(g) == 2 or count_desc(g) == 2"),
+        Rule("count_asc(g) == 3 or count_desc(g) == 3"),
     ],
     27: [ # A colour is < 4
         Rule("g.b < 4"),
@@ -132,6 +144,14 @@ card_rules = {
         Rule("g.p <  3"),
         Rule("g.p == 3"),
         Rule("g.p >  3"),
+    ],
+    44: [ # Yellow vs another colour
+        Rule("g.y <  g.b"),
+        Rule("g.y <  g.p"),
+        Rule("g.y == g.b"),
+        Rule("g.y == g.p"),
+        Rule("g.y >  g.b"),
+        Rule("g.y >  g.p"),
     ],
     46: [ # How many 3s? Or how many 4s?
         Rule("count_digits(g, '== 3') == 0"),
@@ -171,7 +191,7 @@ def short_print_rules(rules):
 def possible_solutions(rule, rules):
     return [g for r,g in rules if rule in r]
 
-cards = [16, 38, 40, 48]
+cards = [3, 16, 23, 25, 27, 44]
 
 # Find all rule sets that have a single solution
 print("Rule sets that provide a single solution:")
