@@ -129,3 +129,16 @@ for rule_set, g in good_rules:
 print(f"\nIgnoring rules that contain redundant rules (Found {len(bad_rules)}):")
 good_rules = [(r,g) for r,g in good_rules if r not in bad_rules]
 short_print_rules(good_rules)
+
+if len(good_rules) > 1:
+    print("\nThat means:\n")
+    # We don't have a single solution. Can we help the player decide what to do?
+    for card in cards:
+        for rule in card_rules[card]:
+            if all(rule in r for r,_ in good_rules):
+                print(f"* Card {card} is definitely `{rule}`")
+                break
+        else:
+            print(f"* Card {card} could be \n{"\n".join(
+                f"    * `{str(rule)}`" for rule in card_rules[card] if any(rule in r for r,_ in good_rules))
+            }")
