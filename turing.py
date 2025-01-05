@@ -40,38 +40,40 @@ class Rule:
 
     def test(self, g):
         #print(f"Rule.test({str(self)}, {g})")
-        return eval(self.test_description)(g)
+        return eval("lambda g: " + self.test_description)(g)
 
+def count_digits(g, test):
+    return sum(1 for d in g if eval("lambda d: d " + test)(d))
 
 card_rules = {
     3: [ # Yellow vs 3
-        Rule("lambda g: g.y < 3"),
-        Rule("lambda g: g.y == 3"),
-        Rule("lambda g: g.y > 3"),
+        Rule("g.y < 3"),
+        Rule("g.y == 3"),
+        Rule("g.y > 3"),
     ],
     7: [ # Purple is odd or even?
-        Rule("lambda g: g.p % 2 == 0"),
-        Rule("lambda g: g.p % 2 == 1"),
+        Rule("g.p % 2 == 0"),
+        Rule("g.p % 2 == 1"),
     ],
     9: [ # How many 3s?
-        Rule("lambda g: sum(1 for d in g if d == 3) == 0"),
-        Rule("lambda g: sum(1 for d in g if d == 3) == 1"),
-        Rule("lambda g: sum(1 for d in g if d == 3) == 2"),
-        Rule("lambda g: sum(1 for d in g if d == 3) == 3"),
+        Rule("count_digits(g, '== 3') == 0"),
+        Rule("count_digits(g, '== 3') == 1"),
+        Rule("count_digits(g, '== 3') == 2"),
+        Rule("count_digits(g, '== 3') == 3"),
     ],
     11: [ # Blue vs yellow
-        Rule("lambda g: g.b < g.y"),
-        Rule("lambda g: g.b == g.y"),
-        Rule("lambda g: g.b > g.y"),
+        Rule("g.b < g.y"),
+        Rule("g.b == g.y"),
+        Rule("g.b > g.y"),
     ],
     15: [ # Which is biggest?
-        Rule("lambda g: g.b > g.p and g.b > g.y"),
-        Rule("lambda g: g.y > g.b and g.y > g.p"),
-        Rule("lambda g: g.p > g.y and g.p > g.b"),
+        Rule("g.b > g.p and g.b > g.y"),
+        Rule("g.y > g.b and g.y > g.p"),
+        Rule("g.p > g.y and g.p > g.b"),
     ],
     16: [ # More even or odd digits?
-        Rule("lambda g: sum(1 for d in g if d % 2 == 0) >= 2"),
-        Rule("lambda g: sum(1 for d in g if d % 2 == 1) >= 2"),
+        Rule("count_digits(g, '% 2 == 0') > 1"),
+        Rule("count_digits(g, '% 2 == 1') > 1"),
     ],
 }
 
@@ -101,13 +103,12 @@ for rule_set in product(*(card_rules[c] for c in cards)):
 short_print_rules(good_rules)
 
 # Can we eliminate some, due to some rules being redundant?
-print("\nIgnoring rules that contain redundant rules:")
-bad_rules = []
+bad_rules = set()
 for rule_set, g in good_rules:
     for rules in combinations(rule_set, len(rule_set)-1):
         if find_unique_solution(rules):
             # Found a unique solution, despite ignoring a rule
-            bad_rules.append(rule_set)
-good_rules = [r for r in good_rules if r not in bad_rules]
+            bad_rules.add(rule_set)
+print(f"\nIgnoring rules that contain redundant rules (Found {len(bad_rules)}):")
+good_rules = [(r,g) for r,g in good_rules if r not in bad_rules]
 short_print_rules(good_rules)
-
