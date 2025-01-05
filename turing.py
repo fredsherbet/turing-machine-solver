@@ -107,6 +107,9 @@ def find_unique_solution(rule_set):
 def short_print_rules(rules):
     print("\n".join(f"{g}: {r}" for r,g in rules))
 
+def possible_solutions(rule, rules):
+    return [g for r,g in rules if rule in r]
+
 cards = [9, 12, 14, 17]
 
 # Find all rule sets that have a single solution
@@ -140,5 +143,5 @@ if len(good_rules) > 1:
                 break
         else:
             print(f"* Card {card} could be \n{"\n".join(
-                f"    * `{str(rule)}`" for rule in card_rules[card] if any(rule in r for r,_ in good_rules))
+                f"    * `{str(rule)}` ({", ".join(str(s) for s in possible_solutions(rule, good_rules))})" for rule in card_rules[card] if any(rule in r for r,_ in good_rules))
             }")
