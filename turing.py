@@ -59,7 +59,7 @@ card_rules = {
         Rule("count_digits(g, '== 3') == 0"),
         Rule("count_digits(g, '== 3') == 1"),
         Rule("count_digits(g, '== 3') == 2"),
-        Rule("count_digits(g, '== 3') == 3"),
+        #Rule("count_digits(g, '== 3') == 3"),
     ],
     11: [ # Blue vs yellow
         Rule("g.b < g.y"),
@@ -108,6 +108,7 @@ for rule_set, g in good_rules:
     for rules in combinations(rule_set, len(rule_set)-1):
         if find_unique_solution(rules):
             # Found a unique solution, despite ignoring a rule
+            #print(f"{g}: {rule_set} IS BAD because {rules} gives a unique solution")
             bad_rules.add(rule_set)
 print(f"\nIgnoring rules that contain redundant rules (Found {len(bad_rules)}):")
 good_rules = [(r,g) for r,g in good_rules if r not in bad_rules]
