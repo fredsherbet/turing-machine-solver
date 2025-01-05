@@ -1,7 +1,7 @@
 
 # Load up the rules
 # For each combination of possible rules, determine whether there's one and only one answer
-# And also are there any rules that are obsolete? How to spot? Combinations that produce no numbers seem sus; can we analyse those?
+# And also are there any rules that are redundant? How to spot? Combinations that produce no numbers seem sus; can we analyse those?
 
 
 from itertools import *
@@ -75,11 +75,7 @@ card_rules = {
     ],
 }
 
-cards = [3, 7, 9, 11, 15, 16]
-
-# Find all rule sets that have a single solution
-good_rules = []
-for rule_set in product(*(card_rules[c] for c in cards)):
+def find_unique_solution(rule_set):
     count = 0
     for g in all_possible_guesses():
         if all(r.test(g) for r in rule_set):
@@ -88,6 +84,30 @@ for rule_set in product(*(card_rules[c] for c in cards)):
             if count > 1:
                 break
     if count == 1:
-        good_rules.append((rule_set, good_guess))
+        return good_guess
+
+def short_print_rules(rules):
+    print("\n".join(f"{g}: {r}" for r,g in rules))
+
+cards = [3, 7, 9, 11, 15, 16]
+
+# Find all rule sets that have a single solution
 print("Rule sets that provide a single solution:")
-print("\n".join(str(r) for r in good_rules))
+good_rules = []
+for rule_set in product(*(card_rules[c] for c in cards)):
+    g = find_unique_solution(rule_set)
+    if g:
+        good_rules.append((rule_set, g))
+short_print_rules(good_rules)
+
+# Can we eliminate some, due to some rules being redundant?
+print("\nIgnoring rules that contain redundant rules:")
+bad_rules = []
+for rule_set, g in good_rules:
+    for rules in combinations(rule_set, len(rule_set)-1):
+        if find_unique_solution(rules):
+            # Found a unique solution, despite ignoring a rule
+            bad_rules.append(rule_set)
+good_rules = [r for r in good_rules if r not in bad_rules]
+short_print_rules(good_rules)
+
