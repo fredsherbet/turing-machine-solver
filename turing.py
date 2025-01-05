@@ -24,18 +24,18 @@ def solve_for_cards(cards):
         return
     
     #print("Rule sets that provide a single solution:")
-    options = list(find_rules_that_produce_single_result(cards))
-    #short_print_rules(options)
+    options = Options(cards)
+    #options.short_print_rules()
 
     # Can we eliminate some, due to some rules being redundant?
-    options = [o for o in options if not o.has_redundant_card()]
+    options.eliminate_redundant_cards()
     print(f"\nIgnoring rules that contain redundant rules (got {len(options)}):")
-    short_print_rules(options)
+    options.short_print_rules()
 
     if len(options) > 1:
         # We don't have a single solution. Can we help the player decide what to do?
         print("\nThat means:\n")
-        print_card_information(cards, options)
+        options.print_card_information()
 
 
 class Guess:
@@ -55,6 +55,10 @@ class Guess:
         yield self.y
         yield self.p
 
+    def all_possible_guesses():
+        for b,y,p in product(range(1, 6), range(1, 6), range(1, 6)):
+            yield Guess(b, y, p)
+
 
 class Option:
     def __init__(self, solution, rules):
@@ -68,15 +72,45 @@ class Option:
                 #print(f"{g}: {rule_set} IS BAD because subset {r} gives a unique solution")
                 return True
         return False
-        
 
-def all_possible_guesses():
-    for b,y,p in product(range(1, 6), range(1, 6), range(1, 6)):
-        yield Guess(b, y, p)
+class Options:
+    def __init__(self, cards):
+        self.cards = cards
+        self.options = list(self._find_rules_that_produce_single_result())
+        
+    def __len__(self):
+        return len(self.options)
+
+    def eliminate_redundant_cards(self):
+        self.options = [o for o in self.options if not o.has_redundant_card()]
+
+    def short_print_rules(self):
+        print("\n".join(f"{o.solution}: {o.rules}" for o in self.options))
+
+    def print_card_information(self):
+        for card in self.cards:
+            for rule in card_rules[card]:
+                if all(rule in o.rules for o in self.options):
+                    print(f"* Card {card} is definitely `{rule}`")
+                    break
+            else:
+                print(f"* Card {card} could be {"".join(
+                    f"\n    * `{rule}` ({", ".join(str(s) for s in self._possible_solutions_for_rule(rule))})" 
+                    for rule in card_rules[card] if any(rule in o.rules for o in self.options))
+                }")
+
+    def _find_rules_that_produce_single_result(self):
+        for rule_set in product(*(card_rules[c] for c in self.cards)):
+            g = find_unique_solution(rule_set)
+            if g:
+                yield Option(g, rule_set)
+    
+    def _possible_solutions_for_rule(self, rule):
+        return (o.solution for o in self.options if rule in o.rules)
 
 def find_unique_solution(rule_set):
     count = 0
-    for g in all_possible_guesses():
+    for g in Guess.all_possible_guesses():
         if all(r.test(g) for r in rule_set):
             good_guess = g
             count += 1
@@ -84,30 +118,6 @@ def find_unique_solution(rule_set):
                 break
     if count == 1:
         return good_guess
-
-def possible_solutions_for_rule(rule, options):
-    return (o.solution for o in options if rule in o.rules)
-
-def short_print_rules(options):
-    print("\n".join(f"{o.solution}: {o.rules}" for o in options))
-
-def print_card_information(cards, options):
-    for card in cards:
-        for rule in card_rules[card]:
-            if all(rule in o.rules for o in options):
-                print(f"* Card {card} is definitely `{rule}`")
-                break
-        else:
-            print(f"* Card {card} could be {"".join(
-                f"\n    * `{rule}` ({", ".join(str(s) for s in possible_solutions_for_rule(rule, options))})" 
-                for rule in card_rules[card] if any(rule in o.rules for o in options))
-            }")
-
-def find_rules_that_produce_single_result(cards):
-    for rule_set in product(*(card_rules[c] for c in cards)):
-        g = find_unique_solution(rule_set)
-        if g:
-            yield Option(g, rule_set)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="A Turing Machine game analyser")
