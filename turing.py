@@ -122,6 +122,17 @@ card_rules = {
         Rule("g.b + g.p == 6"),
         Rule("g.y + g.p == 6"),
     ],
+    40: [ # One colour vs 3
+        Rule("g.b <  3"),
+        Rule("g.b == 3"),
+        Rule("g.b >  3"),
+        Rule("g.y <  3"),
+        Rule("g.y == 3"),
+        Rule("g.y >  3"),
+        Rule("g.p <  3"),
+        Rule("g.p == 3"),
+        Rule("g.p >  3"),
+    ],
     46: [ # How many 3s? Or how many 4s?
         Rule("count_digits(g, '== 3') == 0"),
         Rule("count_digits(g, '== 3') == 1"),
@@ -130,6 +141,17 @@ card_rules = {
         Rule("count_digits(g, '== 4') == 1"),
         Rule("count_digits(g, '== 4') == 2"),
     ],
+    48: [ # Compares 2 colours
+        Rule("g.b <  g.y"),
+        Rule("g.b == g.y"),
+        Rule("g.b >  g.y"),
+        Rule("g.b <  g.p"),
+        Rule("g.b == g.p"),
+        Rule("g.b >  g.p"),
+        Rule("g.y <  g.p"),
+        Rule("g.y == g.p"),
+        Rule("g.y >  g.p"),
+    ]
 }
 
 def find_unique_solution(rule_set):
@@ -149,7 +171,7 @@ def short_print_rules(rules):
 def possible_solutions(rule, rules):
     return [g for r,g in rules if rule in r]
 
-cards = [15, 22, 24, 27, 38, 46]
+cards = [16, 38, 40, 48]
 
 # Find all rule sets that have a single solution
 print("Rule sets that provide a single solution:")
@@ -168,8 +190,8 @@ for rule_set, g in good_rules:
             # Found a unique solution, despite ignoring a rule
             #print(f"{g}: {rule_set} IS BAD because {rules} gives a unique solution")
             bad_rules.add(rule_set)
-print(f"\nIgnoring rules that contain redundant rules (Found {len(bad_rules)}):")
 good_rules = [(r,g) for r,g in good_rules if r not in bad_rules]
+print(f"\nIgnoring rules that contain redundant rules (got {len(good_rules)}):")
 short_print_rules(good_rules)
 
 if len(good_rules) > 1:
