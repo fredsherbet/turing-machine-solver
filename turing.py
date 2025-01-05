@@ -47,9 +47,9 @@ def count_digits(g, test):
 
 card_rules = {
     3: [ # Yellow vs 3
-        Rule("g.y < 3"),
+        Rule("g.y <  3"),
         Rule("g.y == 3"),
-        Rule("g.y > 3"),
+        Rule("g.y >  3"),
     ],
     7: [ # Purple is odd or even?
         Rule("g.p % 2 == 0"),
@@ -62,9 +62,19 @@ card_rules = {
         #Rule("count_digits(g, '== 3') == 3"),
     ],
     11: [ # Blue vs yellow
-        Rule("g.b < g.y"),
+        Rule("g.b <  g.y"),
         Rule("g.b == g.y"),
-        Rule("g.b > g.y"),
+        Rule("g.b >  g.y"),
+    ],
+    12: [ # Blue vs purple
+        Rule("g.b <  g.p"),
+        Rule("g.b == g.p"),
+        Rule("g.b >  g.p"),
+    ],
+    14: [ # Which is smallest? 
+        Rule("g.b < g.p and g.b < g.y"),
+        Rule("g.y < g.b and g.y < g.p"),
+        Rule("g.p < g.y and g.p < g.b"),
     ],
     15: [ # Which is biggest?
         Rule("g.b > g.p and g.b > g.y"),
@@ -75,6 +85,12 @@ card_rules = {
         Rule("count_digits(g, '% 2 == 0') > 1"),
         Rule("count_digits(g, '% 2 == 1') > 1"),
     ],
+    17: [ # How many digits are even?
+        Rule("count_digits(g, '% 2 == 0') == 0"),
+        Rule("count_digits(g, '% 2 == 0') == 1"),
+        Rule("count_digits(g, '% 2 == 0') == 2"),
+        Rule("count_digits(g, '% 2 == 0') == 3"),
+    ]
 }
 
 def find_unique_solution(rule_set):
@@ -91,7 +107,7 @@ def find_unique_solution(rule_set):
 def short_print_rules(rules):
     print("\n".join(f"{g}: {r}" for r,g in rules))
 
-cards = [3, 7, 9, 11, 15, 16]
+cards = [9, 12, 14, 17]
 
 # Find all rule sets that have a single solution
 print("Rule sets that provide a single solution:")
