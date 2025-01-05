@@ -45,6 +45,17 @@ class Rule:
 def count_digits(g, test):
     return sum(1 for d in g if eval("lambda d: d " + test)(d))
 
+def neighbours(g):
+    """Provide all pairs of neighbours (each pair is given in order)"""
+    yield (g.b, g.y)
+    yield (g.y, g.p)
+
+def count_asc(g):
+    asc = sum(1 for a,b in neighbours(g) if b-a == 1)
+    if asc == 0:
+        return 0
+    return asc + 1
+
 card_rules = {
     3: [ # Yellow vs 3
         Rule("g.y <  3"),
@@ -90,7 +101,35 @@ card_rules = {
         Rule("count_digits(g, '% 2 == 0') == 1"),
         Rule("count_digits(g, '% 2 == 0') == 2"),
         Rule("count_digits(g, '% 2 == 0') == 3"),
-    ]
+    ],
+    22: [ # Asc/Desc/no order?
+        Rule("g.b > g.y and g.y > g.p"),
+        Rule("g.b < g.y and g.y < g.p"),
+        Rule("not((g.b > g.y and g.y > g.p) or (g.b < g.y and g.y < g.p))"),
+    ],
+    24: [ # Asc sequence length
+        Rule("count_asc(g) == 3"),
+        Rule("count_asc(g) == 2"),
+        Rule("count_asc(g) == 0"),
+    ],
+    27: [ # A colour is < 4
+        Rule("g.b < 4"),
+        Rule("g.y < 4"),
+        Rule("g.p < 4"),
+    ],
+    38: [ # Sum of 2 is 6
+        Rule("g.b + g.y == 6"),
+        Rule("g.b + g.p == 6"),
+        Rule("g.y + g.p == 6"),
+    ],
+    46: [ # How many 3s? Or how many 4s?
+        Rule("count_digits(g, '== 3') == 0"),
+        Rule("count_digits(g, '== 3') == 1"),
+        Rule("count_digits(g, '== 3') == 2"),
+        Rule("count_digits(g, '== 4') == 0"),
+        Rule("count_digits(g, '== 4') == 1"),
+        Rule("count_digits(g, '== 4') == 2"),
+    ],
 }
 
 def find_unique_solution(rule_set):
@@ -110,7 +149,7 @@ def short_print_rules(rules):
 def possible_solutions(rule, rules):
     return [g for r,g in rules if rule in r]
 
-cards = [9, 12, 14, 17]
+cards = [15, 22, 24, 27, 38, 46]
 
 # Find all rule sets that have a single solution
 print("Rule sets that provide a single solution:")
@@ -143,5 +182,6 @@ if len(good_rules) > 1:
                 break
         else:
             print(f"* Card {card} could be \n{"\n".join(
-                f"    * `{str(rule)}` ({", ".join(str(s) for s in possible_solutions(rule, good_rules))})" for rule in card_rules[card] if any(rule in r for r,_ in good_rules))
+                f"    * `{str(rule)}` ({", ".join(str(s) for s in possible_solutions(rule, good_rules))})" 
+                for rule in card_rules[card] if any(rule in r for r,_ in good_rules))
             }")
